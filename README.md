@@ -1,4 +1,4 @@
-# CODEX-
+# CPB Analyzer
 Codon Pair Bias Analyzer
 """
 Codon Pair Bias Analyzer — Day 1 Draft
