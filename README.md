@@ -176,3 +176,8 @@ if __name__ == "__main__":
     print("\nCodon pair frequency table:")
     for pair, count in result["codon_pair_frequencies"].items():
         print(f"  {pair[0]}-{pair[1]} : {count}")
+
+
+
+
+        
