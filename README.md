@@ -88,7 +88,7 @@ def analyze_sequence(raw_sequence: str) -> dict:
 ## Project Code Overview
 
 ### Goal
-Build a Codon Pair Bias Analyzer that reads sequence data, extracts codons, computes pairwise codon bias patterns, and reports the results in a structured format.
+Build a Codon Pair Bias Analyzer that reads sequence data, extracts codons, computes pairwise codon bias patterns, and reports the results in a structured and interpretable format.
 
 ### Core Code Components
 - Sequence input loader
@@ -99,6 +99,7 @@ Build a Codon Pair Bias Analyzer that reads sequence data, extracts codons, comp
 
 ### Planned Implementation Structure
 ```python
+# Example conceptual structure
 class SequenceAnalyzer:
     def __init__(self, sequence):
         self.sequence = sequence
