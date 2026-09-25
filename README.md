@@ -8,7 +8,8 @@ Codon pair bias analysis studies how frequently adjacent codons occur together i
 Day 1 (Research & Planning)
 
 ## Owner
-Albey Mathew
+Albey Mathew 
+Arushi Tiwary
 
 ## Scope today
 Understand codon pairs, decide how the analyzer will work, and write the basic Python logic: sequence -> codons -> codon pairs -> counts. Full statistical bias scoring, the interface, and integration are planned for later days.
