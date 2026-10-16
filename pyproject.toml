@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cpb-analyzer"
+version = "1.0.0"
+description = "Analyze codon usage and codon-pair bias in coding sequences."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Albey Mathew" }]
+dependencies = []
+
+[project.scripts]
+cpb-analyzer = "cpb_analyzer.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["cpb_analyzer*"]
