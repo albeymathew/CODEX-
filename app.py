@@ -2,6 +2,7 @@
 
 import csv
 import io as builtin_io
+import os
 
 from flask import Flask, make_response, render_template, request
 
@@ -15,7 +16,7 @@ app = Flask(__name__)
 @app.context_processor
 def inject_globals():
     return {"GENETIC_CODE": GENETIC_CODE}
-app.secret_key = "cpb-analyzer-2024"
+app.secret_key = os.environ.get("SECRET_KEY", "cpb-analyzer-2024")
 
 
 def _get_form_inputs():
@@ -146,4 +147,4 @@ def download_codon_counts():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8888)
+    app.run()
