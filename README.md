@@ -1,6 +1,10 @@
 # 🧬 CPB Analyzer — Codon Pair Bias
 
-A local web application for analysing **codon usage** and **codon-pair bias (CPB)** in nucleotide sequences. Upload a FASTA file (or paste a sequence) and instantly get codon counts, RSCU values, and codon-pair O/E statistics — all in a clean, sortable browser interface.
+[![Live App](https://img.shields.io/badge/Live_Web_App-cpb--analyzer.onrender.com-0d6efd?style=for-the-badge&logo=render&logoColor=white)](https://cpb-analyzer.onrender.com)
+
+🌐 **Live Website:** **[https://cpb-analyzer.onrender.com](https://cpb-analyzer.onrender.com)**
+
+A web application for analysing **codon usage** and **codon-pair bias (CPB)** in nucleotide sequences. Upload a FASTA file (or paste a sequence) and instantly get live nucleotide/codon/pair counts, RSCU values, and codon-pair O/E statistics — all in a clean, sortable browser interface.
 
 ---
 
@@ -8,8 +12,9 @@ A local web application for analysing **codon usage** and **codon-pair bias (CPB
 
 | Feature | Detail |
 |---|---|
+| **Live Web App** | Hosted online at [https://cpb-analyzer.onrender.com](https://cpb-analyzer.onrender.com) |
 | **FASTA upload** | Drag & drop or browse `.fasta` / `.fa` / `.txt` files |
-| **Paste sequences** | Bare sequence or multi-record FASTA |
+| **Paste sequences** | Bare sequence or multi-record FASTA with live length, codon, and pair counters |
 | **Reading frame** | Frame 0, 1, or 2 |
 | **Partial codon policy** | Trim trailing bases or raise an error |
 | **Codon Pair Metrics** | Observed count, Expected count, O/E ratio, log₂(O/E) — colour-coded |
@@ -19,13 +24,13 @@ A local web application for analysing **codon usage** and **codon-pair bias (CPB
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local)
 
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/cpb-analyzer.git
-cd cpb-analyzer
+git clone https://github.com/albeymathew/CODEX-.git
+cd CODEX-
 ```
 
 ### 2. Install dependencies
