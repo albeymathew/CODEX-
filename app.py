@@ -316,13 +316,20 @@ HTML = r"""
         </div>
         <div class="text-center text-muted mb-3">— or —</div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Paste sequence(s)</label>
-          <textarea name="fasta_text" class="form-control" rows="5" placeholder=">sequence_1&#10;ATGAAACCC...">{{ fasta_text or '' }}</textarea>
+          <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+            <label class="form-label fw-semibold mb-0">Paste sequence(s)</label>
+            <div class="d-flex gap-2 small">
+              <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-2 py-1">Total Length: <strong id="liveLength">0</strong> nt</span>
+              <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-2 py-1">Total Codons: <strong id="liveCodons">0</strong></span>
+              <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">Codon Pairs: <strong id="livePairs">0</strong></span>
+            </div>
+          </div>
+          <textarea name="fasta_text" id="fasta_text" class="form-control" rows="5" placeholder=">sequence_1&#10;ATGAAACCC..." oninput="updateLiveStats()">{{ fasta_text or '' }}</textarea>
         </div>
         <div class="row g-3 align-items-end mb-3">
           <div class="col-sm-4">
             <label class="form-label fw-semibold">Reading frame</label>
-            <select name="frame" class="form-select">
+            <select name="frame" id="frameSelect" class="form-select" onchange="updateLiveStats()">
               <option value="0" {% if frame==0 %}selected{% endif %}>Frame 0 (default)</option>
               <option value="1" {% if frame==1 %}selected{% endif %}>Frame 1</option>
               <option value="2" {% if frame==2 %}selected{% endif %}>Frame 2</option>
@@ -357,28 +364,28 @@ HTML = r"""
 
   {% if report %}
   {% set agg = report.aggregate %}
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Sequences</div><div class="value">{{ report.records|length }}</div></div></div>
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total length (nt)</div><div class="value">{{ "{:,}".format(agg.sequence_length) }}</div></div></div>
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total codons</div><div class="value">{{ "{:,}".format(agg.codon_count) }}</div></div></div>
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Codon pairs</div><div class="value">{{ "{:,}".format(agg.pair_count) }}</div></div></div>
-  </div>
-
-  {% if report.records|length > 1 %}
-  <div class="card card-panel mb-3">
-    <div class="card-body py-2 px-4 d-flex align-items-center gap-3 flex-wrap">
-      <span class="fw-semibold text-secondary small">Viewing:</span>
-      <div class="btn-group btn-group-sm">
-        <input type="radio" class="btn-check" name="sv" id="svAgg" checked onchange="switchView('aggregate')">
-        <label class="btn btn-outline-primary" for="svAgg">All (aggregate)</label>
-        {% for rec in report.records %}
-        <input type="radio" class="btn-check" name="sv" id="svR{{ loop.index }}" onchange="switchView('rec{{ loop.index }}')">
-        <label class="btn btn-outline-secondary" for="svR{{ loop.index }}">{{ rec.name }}</label>
-        {% endfor %}
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Sequences</div><div class="value" id="statSequences">{{ report.records|length }}</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total length (nt)</div><div class="value" id="statLength">{{ "{:,}".format(agg.sequence_length) }}</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total codons</div><div class="value" id="statCodons">{{ "{:,}".format(agg.codon_count) }}</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Codon pairs</div><div class="value" id="statPairs">{{ "{:,}".format(agg.pair_count) }}</div></div></div>
       </div>
-    </div>
-  </div>
-  {% endif %}
+
+      {% if report.records|length > 1 %}
+      <div class="card card-panel mb-3">
+        <div class="card-body py-2 px-4 d-flex align-items-center gap-3 flex-wrap">
+          <span class="fw-semibold text-secondary small">Viewing:</span>
+          <div class="btn-group btn-group-sm">
+            <input type="radio" class="btn-check" name="sv" id="svAgg" checked onchange="switchView('aggregate', {{ report.records|length }}, {{ agg.sequence_length }}, {{ agg.codon_count }}, {{ agg.pair_count }})">
+            <label class="btn btn-outline-primary" for="svAgg">All (aggregate)</label>
+            {% for rec in report.records %}
+            <input type="radio" class="btn-check" name="sv" id="svR{{ loop.index }}" onchange="switchView('rec{{ loop.index }}', 1, {{ rec.sequence_length }}, {{ rec.codon_count }}, {{ rec.pair_count }})">
+            <label class="btn btn-outline-secondary" for="svR{{ loop.index }}">{{ rec.name }}</label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
   <div class="card card-panel mb-5">
     <div class="card-body p-0">
@@ -438,7 +445,45 @@ HTML = r"""
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 <script>
-function switchView(key){
+function updateLiveStats(){
+  const txt = document.getElementById('fasta_text')?.value || '';
+  const frame = parseInt(document.getElementById('frameSelect')?.value || '0', 10);
+  const lines = txt.split(/\r?\n/);
+  const hasHeader = lines.some(l => l.trim().startsWith('>'));
+  let seqs = [];
+  if(!hasHeader){
+    const s = lines.join('').replace(/\s+/g,'');
+    if(s) seqs.push(s);
+  } else {
+    let cur = '';
+    for(const l of lines){
+      const t = l.trim();
+      if(!t) continue;
+      if(t.startsWith('>')){
+        if(cur) seqs.push(cur);
+        cur = '';
+      } else {
+        cur += t.replace(/\s+/g,'');
+      }
+    }
+    if(cur) seqs.push(cur);
+  }
+  let totalLen = 0, totalCodons = 0, totalPairs = 0;
+  for(const s of seqs){
+    const sub = s.slice(frame);
+    const codons = Math.floor(sub.length / 3);
+    totalLen += codons * 3;
+    totalCodons += codons;
+    totalPairs += Math.max(0, codons - 1);
+  }
+  const elL = document.getElementById('liveLength');
+  const elC = document.getElementById('liveCodons');
+  const elP = document.getElementById('livePairs');
+  if(elL) elL.textContent = totalLen.toLocaleString();
+  if(elC) elC.textContent = totalCodons.toLocaleString();
+  if(elP) elP.textContent = totalPairs.toLocaleString();
+}
+function switchView(key, seqCount, seqLen, codonCount, pairCount){
   document.querySelectorAll('[id^="pairsAggregate"],[id^="pairsRec"],[id^="codonsAggregate"],[id^="codonsRec"]').forEach(el=>el.classList.add('d-none'));
   if(key==='aggregate'){
     document.getElementById('pairsAggregate')?.classList.remove('d-none');
@@ -448,8 +493,31 @@ function switchView(key){
     document.getElementById('pairsRec'+i)?.classList.remove('d-none');
     document.getElementById('codonsRec'+i)?.classList.remove('d-none');
   }
+  if(seqCount !== undefined){
+    document.getElementById('statSequences').textContent = seqCount.toLocaleString();
+    document.getElementById('statLength').textContent = seqLen.toLocaleString();
+    document.getElementById('statCodons').textContent = codonCount.toLocaleString();
+    document.getElementById('statPairs').textContent = pairCount.toLocaleString();
+  }
 }
 $(document).ready(function(){
+  updateLiveStats();
+  const fInput = document.getElementById('fasta_file');
+  if(fInput){
+    fInput.addEventListener('change', function(){
+      if(this.files && this.files[0]){
+        const reader = new FileReader();
+        reader.onload = function(e){
+          const ta = document.getElementById('fasta_text');
+          if(ta && !ta.value.trim()){
+            ta.value = e.target.result;
+            updateLiveStats();
+          }
+        };
+        reader.readAsText(this.files[0]);
+      }
+    });
+  }
   $('table[id^="tblPairs"],table[id^="tblCodons"],#tblPerSeq').each(function(){
     if(!$.fn.DataTable.isDataTable(this)){
       $(this).DataTable({pageLength:25,order:[],language:{search:'Filter:'},dom:'<"d-flex justify-content-between align-items-center mb-2"lf>rtip'});
@@ -487,12 +555,16 @@ def _run(fasta_text, frame, partial_codon, include_zero_pairs):
 def _render(**kwargs):
     return render_template_string(HTML, GENETIC_CODE=GENETIC_CODE, **kwargs)
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET", "POST"])
 def index():
+    if request.method == "POST":
+        return analyze()
     return _render()
 
-@app.route("/analyze", methods=["POST"])
+@app.route("/analyze", methods=["GET", "POST"])
 def analyze():
+    if request.method == "GET":
+        return _render()
     fasta_text, frame, partial_codon, include_zero_pairs = _get_inputs()
     report, error = _run(fasta_text, frame, partial_codon, include_zero_pairs)
     return _render(report=report, error=error, fasta_text=fasta_text,
